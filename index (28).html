@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VidSnap — Video Downloader</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#080808;--s1:#111;--s2:#181818;--b1:#1e1e1e;--b2:#2a2a2a;--accent:#e8ff47;--a2:#ff6b35;--text:#f0f0f0;--muted:#555;--dim:#303030;--r:12px;--rl:20px}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 90% 40% at 50% 0%,rgba(232,255,71,.05),transparent 70%);pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.016) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.016) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
+.page{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:0 20px 100px}
+nav{padding:28px 0;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.05em;color:var(--accent)}
+.logo span{color:var(--text)}
+.nbadge{display:flex;align-items:center;gap:7px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--b1);padding:5px 12px;border-radius:20px}
+.dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 7px #4ade8099;flex-shrink:0}
+.hero{text-align:center;padding:48px 0 36px}
+.ey{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--a2);margin-bottom:14px;display:inline-flex;align-items:center;gap:8px}
+.ey::before,.ey::after{content:'';width:16px;height:1px;background:currentColor;opacity:.5}
+h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(54px,13vw,100px);line-height:.88;letter-spacing:.02em;margin-bottom:14px}
+h1 em{font-style:normal;color:var(--accent);display:block}
+.hero p{font-size:14px;color:var(--muted);line-height:1.7;max-width:360px;margin:0 auto}
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--rl);padding:24px;margin-bottom:12px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--a2) 30%,var(--accent) 70%,transparent);opacity:.35}
+.lbl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.irow{display:flex;gap:8px;margin-bottom:18px}
+.urlin{flex:1;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:14px 16px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color .2s;min-width:0}
+.urlin::placeholder{color:var(--dim)}
+.urlin:focus{border-color:var(--accent)}
+.fbtn{background:var(--accent);color:#080808;border:none;border-radius:var(--r);padding:14px 20px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .15s;display:flex;align-items:center;gap:7px;flex-shrink:0}
+.fbtn:hover{opacity:.85}
+.fbtn:disabled{opacity:.3;cursor:not-allowed}
+.plbl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.pill{font-size:11px;font-weight:500;padding:4px 11px;border-radius:20px;border:1px solid var(--b1);color:var(--muted);transition:all .15s}
+.pill.on{border-color:var(--accent);color:var(--accent);background:rgba(232,255,71,.05)}
+.sbox,.ebox{display:none;align-items:flex-start;gap:10px;padding:13px 15px;border-radius:var(--r);margin-top:14px;font-size:13px}
+.sbox{background:var(--s2);border:1px solid var(--b1);color:var(--muted)}
+.ebox{background:rgba(248,113,113,.04);border:1px solid rgba(248,113,113,.15);color:#f87171;line-height:1.55}
+.sbox.show,.ebox.show{display:flex}
+.spin{width:16px;height:16px;border:2px solid var(--b2);border-top-color:var(--accent);border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0;margin-top:1px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.rbox{display:none;flex-direction:column;gap:12px;margin-top:14px}
+.rbox.show{display:flex}
+.rthumb{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:var(--r);background:var(--s2)}
+.rtitle{font-size:14px;font-weight:600;line-height:1.4;margin-bottom:4px}
+.rmeta{font-size:12px;color:var(--muted)}
+.dlbig{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:15px;background:var(--accent);color:#080808;border:none;border-radius:var(--r);font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;transition:opacity .15s}
+.dlbig:hover{opacity:.88}
+.note{font-size:11px;color:var(--muted);text-align:center;line-height:1.6}
+.sec{margin-top:32px}
+.stitle{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.stitle::after{content:'';flex:1;height:1px;background:var(--b1)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.step{padding:16px;background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);text-align:center}
+.snum{font-family:'Bebas Neue',sans-serif;font-size:34px;color:var(--accent);line-height:1;margin-bottom:4px}
+.stxt{font-size:11px;color:var(--muted);line-height:1.5}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:6px}
+.chip{padding:8px 10px;background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);font-size:11px;font-weight:500;color:var(--muted);text-align:center}
+footer{margin-top:52px;padding-top:18px;border-top:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.flogo{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--muted)}
+.fnote{font-size:11px;color:var(--dim);text-align:right}
+@media(max-width:500px){.steps{grid-template-columns:1fr}.irow{flex-direction:column}.fbtn{width:100%;justify-content:center}}
+</style>
+</head>
+<body>
+<div class="page">
+<nav>
+  <div class="logo">Vid<span>Snap</span></div>
+  <div class="nbadge"><span class="dot"></span><span>Online</span></div>
+</nav>
+<section class="hero">
+  <div class="ey">Free Video Downloader</div>
+  <h1>DOWNLOAD<em>ANY VIDEO</em></h1>
+  <p>TikTok, Instagram, Twitter/X, YouTube. Paste a link and download instantly.</p>
+</section>
+<div class="card">
+  <div class="lbl">Paste video URL</div>
+  <div class="irow">
+    <input class="urlin" id="urlIn" type="url" placeholder="https://www.tiktok.com/@user/video/..." autocomplete="off" spellcheck="false"/>
+    <button class="fbtn" id="fetchBtn" onclick="go()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download
+    </button>
+  </div>
+  <div class="plbl">Detected platform</div>
+  <div class="pills" id="pills">
+    <div class="pill" data-p="tiktok">♪ TikTok</div>
+    <div class="pill" data-p="instagram">◈ Instagram</div>
+    <div class="pill" data-p="twitter">✦ Twitter/X</div>
+    <div class="pill" data-p="youtube">▶ YouTube</div>
+    <div class="pill" data-p="other">∞ Other</div>
+  </div>
+  <div class="sbox" id="sbox"><div class="spin"></div><span id="stxt">Fetching...</span></div>
+  <div class="ebox" id="ebox">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="etxt"></span>
+  </div>
+  <div class="rbox" id="rbox">
+    <img class="rthumb" id="rThumb" src="" alt="" style="display:none"/>
+    <div><div class="rtitle" id="rTitle"></div><div class="rmeta" id="rMeta"></div></div>
+    <a class="dlbig" id="dlLink" href="#" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Tap to Download
+    </a>
+    <div class="note" id="dlNote"></div>
+  </div>
+</div>
+<div class="sec">
+  <div class="stitle">How it works</div>
+  <div class="steps">
+    <div class="step"><div class="snum">01</div><div class="stxt">Copy link from any platform</div></div>
+    <div class="step"><div class="snum">02</div><div class="stxt">Paste it above and tap Download</div></div>
+    <div class="step"><div class="snum">03</div><div class="stxt">File downloads to your device</div></div>
+  </div>
+</div>
+<div class="sec" style="margin-top:24px">
+  <div class="stitle">Supported platforms</div>
+  <div class="chips">
+    <div class="chip">TikTok ✅</div>
+    <div class="chip">Instagram ✅</div>
+    <div class="chip">Twitter/X ✅</div>
+    <div class="chip">YouTube ✅</div>
+  </div>
+</div>
+<footer>
+  <div class="flogo">VidSnap</div>
+  <div class="fnote">Personal use only · Respect creators</div>
+</footer>
+</div>
+<script>
+const PP = {tiktok:/tiktok\.com/i,instagram:/instagram\.com/i,twitter:/twitter\.com|x\.com/i,youtube:/youtube\.com|youtu\.be/i};
+const urlIn = document.getElementById('urlIn');
+urlIn.addEventListener('input',()=>detect(urlIn.value.trim()));
+urlIn.addEventListener('paste',()=>setTimeout(()=>detect(urlIn.value.trim()),10));
+urlIn.addEventListener('keydown',e=>{if(e.key==='Enter')go()});
+
+function detect(url){
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));
+  if(!url)return;
+  let f='other';
+  for(const[k,re]of Object.entries(PP)){if(re.test(url)){f=k;break;}}
+  document.querySelector(`.pill[data-p="${f}"]`)?.classList.add('on');
+}
+
+async function go(){
+  const url=urlIn.value.trim();
+  if(!url){showErr('Please paste a video URL.');return;}
+  if(!isUrl(url)){showErr("That doesn't look like a valid URL.");return;}
+  clear();
+  showStatus('Fetching video...');
+  document.getElementById('fetchBtn').disabled=true;
+  try{
+    const res=await fetch(`/api/download?url=${encodeURIComponent(url)}`);
+    const json=await res.json();
+    if(!res.ok||!json.success)throw new Error(json.error||json.message||'API error');
+    const d=json.data;
+    let dlUrl,title,meta,thumb,note;
+    if(/tiktok\.com/i.test(url)){
+      const urls=d.video?.download_no_watermark_addr?.url_list;
+      dlUrl=urls?.['0']||urls?.[0];
+      if(!dlUrl)throw new Error('No download URL found. Video may be private.');
+      title=d.desc||'TikTok Video';
+      meta=`@${d.author?.unique_id||'unknown'} · ${fmtNum(d.statistics?.play_count)} plays`;
+      thumb=d.video?.dynamic_cover?.url_list?.['0'];
+    } else if(/instagram\.com/i.test(url)){
+      dlUrl=d.video_url||d.display_url;
+      if(!dlUrl)throw new Error('No video found. Only Reels/videos supported.');
+      title=d.caption?.slice(0,80)||'Instagram Video';
+      meta=`@${d.owner?.username||'unknown'} · ${fmtNum(d.like_count)} likes`;
+      thumb=d.thumbnail_src||d.display_url;
+    } else if(/twitter\.com|x\.com/i.test(url)){
+      const variants=d.extended_entities?.media?.[0]?.video_info?.variants||[];
+      const best=variants.filter(v=>v.content_type==='video/mp4').sort((a,b)=>(b.bitrate||0)-(a.bitrate||0))[0];
+      dlUrl=best?.url;
+      if(!dlUrl)throw new Error('No video found in this tweet.');
+      title=d.full_text?.slice(0,80)||'Twitter Video';
+      meta=`@${d.user?.screen_name||'unknown'}`;
+      thumb=d.extended_entities?.media?.[0]?.media_url_https;
+    } else {
+      dlUrl=d.url||url;
+      title=d.title||'YouTube Video';
+      meta=`${d.channel?.title||''} · ${fmtNum(d.viewCountInt)} views`;
+      thumb=d.thumbnail;
+      note='YouTube: opens video page. Direct download not available.';
+    }
+    clear();
+    showResult(dlUrl,title,meta,thumb,note);
+  }catch(err){
+    clear();
+    showErr(err.message||'Something went wrong.');
+  }finally{
+    document.getElementById('fetchBtn').disabled=false;
+  }
+}
+
+function showResult(dlUrl,title,meta,thumb,note){
+  document.getElementById('dlLink').href=dlUrl;
+  document.getElementById('rTitle').textContent=title||'';
+  document.getElementById('rMeta').textContent=meta||'';
+  if(thumb){const img=document.getElementById('rThumb');img.src=thumb;img.style.display='block';}
+  document.getElementById('dlNote').textContent=note||'Tap the button to download.';
+  document.getElementById('rbox').classList.add('show');
+}
+function showStatus(m){document.getElementById('stxt').textContent=m;document.getElementById('sbox').classList.add('show');}
+function showErr(m){document.getElementById('etxt').textContent=m;document.getElementById('ebox').classList.add('show');}
+function clear(){['sbox','ebox','rbox'].forEach(id=>document.getElementById(id).classList.remove('show'));}
+function isUrl(s){try{new URL(s);return true;}catch{return false;}}
+function fmtNum(n){if(!n)return'0';return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':String(n);}
+</script>
+</body>
+</html>
