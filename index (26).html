@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VidSnap — Video Downloader</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080808;--s1:#111;--s2:#181818;--s3:#1f1f1f;
+  --b1:#1e1e1e;--b2:#2a2a2a;--b3:#333;
+  --accent:#e8ff47;--a2:#ff6b35;--a3:#5b8def;
+  --text:#f0f0f0;--muted:#555;--dim:#303030;
+  --r:12px;--rl:20px;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 90% 40% at 50% 0%,rgba(232,255,71,.05),transparent 70%);pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.016) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.016) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
+.page{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:0 20px 100px}
+
+nav{padding:28px 0;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.05em;color:var(--accent)}
+.logo span{color:var(--text)}
+.nbadge{display:flex;align-items:center;gap:7px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--b1);padding:5px 12px;border-radius:20px}
+.dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 7px #4ade8099;flex-shrink:0}
+
+.hero{text-align:center;padding:48px 0 36px;animation:up .5s ease both}
+.ey{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--a2);margin-bottom:14px;display:inline-flex;align-items:center;gap:8px}
+.ey::before,.ey::after{content:'';width:16px;height:1px;background:currentColor;opacity:.5}
+h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(54px,13vw,100px);line-height:.88;letter-spacing:.02em;color:var(--text);margin-bottom:14px}
+h1 em{font-style:normal;color:var(--accent);display:block}
+.hero p{font-size:14px;color:var(--muted);line-height:1.7;max-width:360px;margin:0 auto}
+
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--rl);padding:24px;margin-bottom:12px;position:relative;overflow:hidden;animation:up .5s .08s ease both}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--a2) 30%,var(--accent) 70%,transparent);opacity:.35}
+
+.lbl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.lbl i{width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0;font-style:normal;display:inline-block}
+.irow{display:flex;gap:8px;margin-bottom:18px}
+.urlin{flex:1;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:14px 16px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color .2s,box-shadow .2s;min-width:0}
+.urlin::placeholder{color:var(--dim)}
+.urlin:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,255,71,.06)}
+.fbtn{background:var(--accent);color:#080808;border:none;border-radius:var(--r);padding:14px 20px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:transform .15s,opacity .15s;display:flex;align-items:center;gap:7px;flex-shrink:0}
+.fbtn:hover{opacity:.85}
+.fbtn:active{transform:scale(.96)}
+.fbtn:disabled{opacity:.3;cursor:not-allowed;transform:none}
+.fbtn svg{width:15px;height:15px}
+
+/* Quality options */
+.qlbl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.qopts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.qopt{font-size:11px;font-weight:500;padding:5px 13px;border-radius:20px;border:1px solid var(--b1);color:var(--muted);cursor:pointer;transition:all .15s;user-select:none;background:transparent}
+.qopt.on{border-color:var(--accent);color:var(--accent);background:rgba(232,255,71,.05)}
+.qopt:hover{border-color:var(--b3);color:var(--text)}
+
+/* Type toggle */
+.trow{display:flex;gap:6px;margin-bottom:16px}
+.tbtn{flex:1;padding:9px;border-radius:var(--r);border:1px solid var(--b1);background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;text-align:center}
+.tbtn.on{border-color:var(--accent);color:var(--accent);background:rgba(232,255,71,.05)}
+
+.plbl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{font-size:11px;font-weight:500;padding:4px 11px;border-radius:20px;border:1px solid var(--b1);color:var(--muted);transition:all .15s;user-select:none}
+.pill.on{border-color:var(--accent);color:var(--accent);background:rgba(232,255,71,.05)}
+
+.sbox,.ebox{display:none;align-items:flex-start;gap:10px;padding:13px 15px;border-radius:var(--r);margin-top:14px;font-size:13px}
+.sbox{background:var(--s2);border:1px solid var(--b1);color:var(--muted)}
+.ebox{background:rgba(248,113,113,.04);border:1px solid rgba(248,113,113,.15);color:#f87171;line-height:1.55}
+.sbox.show,.ebox.show{display:flex}
+.spin{width:16px;height:16px;border:2px solid var(--b2);border-top-color:var(--accent);border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0;margin-top:1px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.rbox{display:none;flex-direction:column;gap:8px;margin-top:14px}
+.rbox.show{display:flex}
+
+/* Download button big */
+.dlbig{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:15px;background:var(--accent);color:#080808;border:none;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;transition:opacity .15s,transform .15s}
+.dlbig:hover{opacity:.88}
+.dlbig:active{transform:scale(.97)}
+.dlbig svg{width:18px;height:18px}
+.dlbig.loading{opacity:.5;pointer-events:none}
+
+.note{font-size:11px;color:var(--muted);text-align:center;margin-top:8px;line-height:1.6}
+.note a{color:var(--a3);text-decoration:none}
+
+.sec{margin-top:32px;animation:up .5s .15s ease both}
+.stitle{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.stitle::after{content:'';flex:1;height:1px;background:var(--b1)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.step{padding:16px;background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);text-align:center}
+.snum{font-family:'Bebas Neue',sans-serif;font-size:34px;color:var(--accent);line-height:1;margin-bottom:4px}
+.stxt{font-size:11px;color:var(--muted);line-height:1.5}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:6px}
+.chip{padding:8px 10px;background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);font-size:11px;font-weight:500;color:var(--muted);text-align:center}
+.chip.no{text-decoration:line-through;opacity:.35}
+footer{margin-top:52px;padding-top:18px;border-top:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.flogo{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--muted);letter-spacing:.04em}
+.fnote{font-size:11px;color:var(--dim);line-height:1.5;text-align:right}
+
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:500px){
+  .steps{grid-template-columns:1fr}
+  .irow{flex-direction:column}
+  .fbtn{width:100%;justify-content:center}
+  h1{font-size:54px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<nav>
+  <div class="logo">Vid<span>Snap</span></div>
+  <div class="nbadge">
+    <span class="dot"></span>
+    <span>Cobalt · Online</span>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="ey">Powered by Cobalt</div>
+  <h1>DOWNLOAD<em>ANY VIDEO</em></h1>
+  <p>TikTok, Instagram, Twitter/X, Reddit, Vimeo, SoundCloud and more. Paste a link and download instantly.</p>
+</section>
+
+<div class="card">
+  <div class="lbl"><i></i> Paste video URL</div>
+  <div class="irow">
+    <input class="urlin" id="urlIn" type="url"
+      placeholder="https://www.tiktok.com/..."
+      autocomplete="off" spellcheck="false"/>
+    <button class="fbtn" id="fetchBtn" onclick="go()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Download
+    </button>
+  </div>
+
+  <!-- Type -->
+  <div class="qlbl">Download type</div>
+  <div class="trow">
+    <button class="tbtn on" id="tVideo" onclick="setType('video')">🎬 Video</button>
+    <button class="tbtn" id="tAudio" onclick="setType('audio')">🎵 Audio only (MP3)</button>
+  </div>
+
+  <!-- Quality -->
+  <div class="qlbl" id="qLabel">Quality</div>
+  <div class="qopts" id="qopts">
+    <div class="qopt on" data-q="1080" onclick="setQ(this)">1080p</div>
+    <div class="qopt" data-q="720" onclick="setQ(this)">720p</div>
+    <div class="qopt" data-q="480" onclick="setQ(this)">480p</div>
+    <div class="qopt" data-q="360" onclick="setQ(this)">360p</div>
+    <div class="qopt" data-q="max" onclick="setQ(this)">Max</div>
+  </div>
+
+  <!-- Platform pills -->
+  <div class="plbl">Detected platform</div>
+  <div class="pills" id="pills">
+    <div class="pill" data-p="tiktok">♪ TikTok</div>
+    <div class="pill" data-p="instagram">◈ Instagram</div>
+    <div class="pill" data-p="twitter">✦ Twitter/X</div>
+    <div class="pill" data-p="reddit">◉ Reddit</div>
+    <div class="pill" data-p="vimeo">◇ Vimeo</div>
+    <div class="pill" data-p="soundcloud">♫ SoundCloud</div>
+    <div class="pill" data-p="other">∞ Other</div>
+  </div>
+
+  <!-- States -->
+  <div class="sbox" id="sbox">
+    <div class="spin"></div><span id="stxt">Fetching...</span>
+  </div>
+  <div class="ebox" id="ebox">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span id="etxt"></span>
+  </div>
+
+  <!-- Result -->
+  <div class="rbox" id="rbox">
+    <a class="dlbig" id="dlLink" href="#" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Tap to Download
+    </a>
+    <div class="note" id="dlNote"></div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="sec">
+  <div class="stitle">How it works</div>
+  <div class="steps">
+    <div class="step"><div class="snum">01</div><div class="stxt">Copy link from any platform</div></div>
+    <div class="step"><div class="snum">02</div><div class="stxt">Paste it above and tap Download</div></div>
+    <div class="step"><div class="snum">03</div><div class="stxt">File downloads directly to your device</div></div>
+  </div>
+</div>
+
+<!-- SUPPORTED -->
+<div class="sec" style="margin-top:24px">
+  <div class="stitle">Supported sites</div>
+  <div class="chips">
+    <div class="chip no">YouTube*</div>
+    <div class="chip">TikTok</div>
+    <div class="chip">Instagram</div>
+    <div class="chip">Twitter/X</div>
+    <div class="chip">Reddit</div>
+    <div class="chip">Vimeo</div>
+    <div class="chip">SoundCloud</div>
+    <div class="chip">Dailymotion</div>
+    <div class="chip">Pinterest</div>
+    <div class="chip">Snapchat</div>
+    <div class="chip">Twitch Clips</div>
+    <div class="chip">Bilibili</div>
+  </div>
+  <p style="font-size:11px;color:var(--muted);margin-top:10px">*YouTube not supported on free Cobalt instances</p>
+</div>
+
+<footer>
+  <div class="flogo">VidSnap</div>
+  <div class="fnote">Powered by Cobalt · Personal use only · Respect creators & ToS</div>
+</footer>
+</div>
+
+<script>
+// Config
+const COBALT_API = 'https://api.cobalt.tools';
+
+// State
+let dlType = 'video';
+let quality = '1080';
+
+// Platform detection
+const PP = {
+  tiktok:     /tiktok\.com/i,
+  instagram:  /instagram\.com/i,
+  twitter:    /twitter\.com|x\.com/i,
+  reddit:     /reddit\.com|redd\.it/i,
+  vimeo:      /vimeo\.com/i,
+  soundcloud: /soundcloud\.com/i,
+};
+
+const urlIn = document.getElementById('urlIn');
+urlIn.addEventListener('input',  () => detect(urlIn.value.trim()));
+urlIn.addEventListener('paste',  () => setTimeout(() => detect(urlIn.value.trim()), 10));
+urlIn.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+
+function detect(url) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('on'));
+  if (!url) return;
+  let found = 'other';
+  for (const [k, re] of Object.entries(PP)) { if (re.test(url)) { found = k; break; } }
+  document.querySelector(`.pill[data-p="${found}"]`)?.classList.add('on');
+}
+
+function setType(t) {
+  dlType = t;
+  document.getElementById('tVideo').classList.toggle('on', t === 'video');
+  document.getElementById('tAudio').classList.toggle('on', t === 'audio');
+  document.getElementById('qopts').style.opacity = t === 'audio' ? '.3' : '1';
+  document.getElementById('qopts').style.pointerEvents = t === 'audio' ? 'none' : '';
+}
+
+function setQ(el) {
+  document.querySelectorAll('.qopt').forEach(e => e.classList.remove('on'));
+  el.classList.add('on');
+  quality = el.dataset.q;
+}
+
+async function go() {
+  const url = urlIn.value.trim();
+  if (!url) { showErr('Please paste a video URL.'); return; }
+  if (!isUrl(url)) { showErr("That doesn't look like a valid URL."); return; }
+
+  clear();
+  showStatus('Contacting Cobalt...');
+  document.getElementById('fetchBtn').disabled = true;
+
+  try {
+    const body = {
+      url,
+      downloadMode: dlType === 'audio' ? 'audio' : 'auto',
+      videoQuality: quality === 'max' ? '9000' : quality,
+      filenameStyle: 'pretty',
+    };
+
+    const res = await fetch(`${COBALT_API}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+
+    if (data.status === 'error') {
+      throw new Error(data.error?.code || 'Cobalt could not process this URL.');
+    }
+
+    if (data.status === 'redirect' || data.status === 'tunnel') {
+      clear();
+      showResult(data.url, url);
+    } else if (data.status === 'picker') {
+      // Multiple items (e.g. Instagram carousel) — use first
+      const first = data.picker?.[0];
+      if (first?.url) {
+        clear();
+        showResult(first.url, url);
+      } else {
+        throw new Error('Multiple files found but could not extract link.');
+      }
+    } else {
+      throw new Error('Unexpected response from Cobalt.');
+    }
+
+  } catch (err) {
+    clear();
+    let msg = err.message || 'Request failed.';
+    if (msg.includes('fetch') || msg.includes('network')) {
+      msg = 'Could not reach Cobalt API. Check your connection or try again.';
+    }
+    showErr(msg);
+  } finally {
+    document.getElementById('fetchBtn').disabled = false;
+  }
+}
+
+function showResult(dlUrl, originalUrl) {
+  const link = document.getElementById('dlLink');
+  link.href = dlUrl;
+
+  // Detect platform for note
+  let platform = 'video';
+  for (const [k, re] of Object.entries(PP)) {
+    if (re.test(originalUrl)) { platform = k; break; }
+  }
+
+  document.getElementById('dlNote').innerHTML =
+    `${dlType === 'audio' ? 'Audio (MP3)' : `${quality === 'max' ? 'Best quality' : quality + 'p'} video`} · ${platform} · 
+     <a href="${x(dlUrl)}" download>force download</a>`;
+
+  document.getElementById('rbox').classList.add('show');
+}
+
+// Helpers
+function showStatus(m){document.getElementById('stxt').textContent=m;document.getElementById('sbox').classList.add('show')}
+function showErr(m){document.getElementById('etxt').textContent=m;document.getElementById('ebox').classList.add('show')}
+function clear(){
+  ['sbox','ebox','rbox'].forEach(id=>document.getElementById(id).classList.remove('show'));
+}
+function isUrl(s){try{new URL(s);return true}catch{return false}}
+function x(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+</script>
+</body>
+</html>
