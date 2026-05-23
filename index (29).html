@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VidSnap — Video Downloader</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#080808;--s1:#111;--s2:#181818;--b1:#1e1e1e;--b2:#2a2a2a;--accent:#e8ff47;--a2:#ff6b35;--text:#f0f0f0;--muted:#555;--dim:#303030;--r:12px;--rl:20px}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 90% 40% at 50% 0%,rgba(232,255,71,.05),transparent 70%);pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.016) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.016) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
+.page{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:0 20px 100px}
+nav{padding:28px 0;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.05em;color:var(--accent)}
+.logo span{color:var(--text)}
+.nbadge{display:flex;align-items:center;gap:7px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--b1);padding:5px 12px;border-radius:20px}
+.dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 7px #4ade8099;flex-shrink:0}
+.hero{text-align:center;padding:48px 0 36px}
+.ey{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--a2);margin-bottom:14px;display:inline-flex;align-items:center;gap:8px}
+.ey::before,.ey::after{content:'';width:16px;height:1px;background:currentColor;opacity:.5}
+h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(54px,13vw,100px);line-height:.88;letter-spacing:.02em;margin-bottom:14px}
+h1 em{font-style:normal;color:var(--accent);display:block}
+.hero p{font-size:14px;color:var(--muted);line-height:1.7;max-width:360px;margin:0 auto}
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--rl);padding:24px;margin-bottom:12px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--a2) 30%,var(--accent) 70%,transparent);opacity:.35}
+.lbl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.irow{display:flex;gap:8px;margin-bottom:16px}
+.urlin{flex:1;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:14px 16px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color .2s;min-width:0}
+.urlin::placeholder{color:var(--dim)}
+.urlin:focus{border-color:var(--accent)}
+.fbtn{background:var(--accent);color:#080808;border:none;border-radius:var(--r);padding:14px 20px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .15s;display:flex;align-items:center;gap:7px;flex-shrink:0}
+.fbtn:hover{opacity:.85}
+.fbtn:disabled{opacity:.3;cursor:not-allowed}
+.sbox,.ebox{display:none;align-items:flex-start;gap:10px;padding:13px 15px;border-radius:var(--r);margin-top:4px;font-size:13px}
+.sbox{background:var(--s2);border:1px solid var(--b1);color:var(--muted)}
+.ebox{background:rgba(248,113,113,.04);border:1px solid rgba(248,113,113,.15);color:#f87171;line-height:1.55}
+.sbox.show,.ebox.show{display:flex}
+.spin{width:16px;height:16px;border:2px solid var(--b2);border-top-color:var(--accent);border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0;margin-top:1px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.rbox{display:none;flex-direction:column;gap:8px;margin-top:14px}
+.rbox.show{display:flex}
+.vlist{display:flex;flex-direction:column;gap:6px}
+.vitem{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);gap:10px}
+.vinfo{font-size:12px;color:var(--muted)}
+.vinfo b{color:var(--text);font-size:13px;display:block;margin-bottom:2px}
+.dlbtn{background:var(--accent);color:#080808;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;flex-shrink:0}
+.dlbtn:hover{opacity:.85}
+.rtitle{font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px;line-height:1.4}
+.sec{margin-top:32px}
+.stitle{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.stitle::after{content:'';flex:1;height:1px;background:var(--b1)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.step{padding:16px;background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);text-align:center}
+.snum{font-family:'Bebas Neue',sans-serif;font-size:34px;color:var(--accent);line-height:1;margin-bottom:4px}
+.stxt{font-size:11px;color:var(--muted);line-height:1.5}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:6px}
+.chip{padding:8px 10px;background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);font-size:11px;font-weight:500;color:var(--muted);text-align:center}
+footer{margin-top:52px;padding-top:18px;border-top:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.flogo{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--muted)}
+.fnote{font-size:11px;color:var(--dim);text-align:right}
+@media(max-width:500px){.steps{grid-template-columns:1fr}.irow{flex-direction:column}.fbtn{width:100%;justify-content:center}}
+</style>
+</head>
+<body>
+<div class="page">
+<nav>
+  <div class="logo">Vid<span>Snap</span></div>
+  <div class="nbadge"><span class="dot"></span><span>Online</span></div>
+</nav>
+<section class="hero">
+  <div class="ey">Free Video Downloader</div>
+  <h1>DOWNLOAD<em>ANY VIDEO</em></h1>
+  <p>YouTube, TikTok, Instagram, Twitter/X, Facebook and more. Paste a link and download instantly.</p>
+</section>
+<div class="card">
+  <div class="lbl">Paste video URL</div>
+  <div class="irow">
+    <input class="urlin" id="urlIn" type="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off" spellcheck="false"/>
+    <button class="fbtn" id="fetchBtn" onclick="go()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download
+    </button>
+  </div>
+  <div class="sbox" id="sbox"><div class="spin"></div><span id="stxt">Fetching...</span></div>
+  <div class="ebox" id="ebox">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="etxt"></span>
+  </div>
+  <div class="rbox" id="rbox">
+    <div class="rtitle" id="rTitle"></div>
+    <div class="vlist" id="vList"></div>
+  </div>
+</div>
+<div class="sec">
+  <div class="stitle">How it works</div>
+  <div class="steps">
+    <div class="step"><div class="snum">01</div><div class="stxt">Copy a video link from any platform</div></div>
+    <div class="step"><div class="snum">02</div><div class="stxt">Paste it above and tap Download</div></div>
+    <div class="step"><div class="snum">03</div><div class="stxt">Choose quality and save to device</div></div>
+  </div>
+</div>
+<div class="sec" style="margin-top:24px">
+  <div class="stitle">Supported platforms</div>
+  <div class="chips">
+    <div class="chip">YouTube ✅</div>
+    <div class="chip">TikTok ✅</div>
+    <div class="chip">Instagram ✅</div>
+    <div class="chip">Twitter/X ✅</div>
+    <div class="chip">Facebook ✅</div>
+    <div class="chip">Vimeo ✅</div>
+  </div>
+</div>
+<footer>
+  <div class="flogo">VidSnap</div>
+  <div class="fnote">Personal use only · Respect creators</div>
+</footer>
+</div>
+<script>
+const RAPID_KEY = '5d6b73f922msh28b4d03ad97bddap1827adjsn9dda6da5c10e';
+const RAPID_HOST = 'social-media-video-downloader.p.rapidapi.com';
+
+const urlIn = document.getElementById('urlIn');
+urlIn.addEventListener('keydown', e => { if(e.key==='Enter') go(); });
+
+async function go() {
+  const url = urlIn.value.trim();
+  if (!url) { showErr('Please paste a video URL.'); return; }
+  try { new URL(url); } catch { showErr("That doesn't look like a valid URL."); return; }
+
+  clear();
+  showStatus('Fetching video links...');
+  document.getElementById('fetchBtn').disabled = true;
+
+  try {
+    const res = await fetch(`https://${RAPID_HOST}/smvd/get/all?url=${encodeURIComponent(url)}`, {
+      headers: {
+        'X-RapidAPI-Key': RAPID_KEY,
+        'X-RapidAPI-Host': RAPID_HOST
+      }
+    });
+    const data = await res.json();
+
+    if (data.error) throw new Error(data.error);
+    if (!data.contents?.length) throw new Error('No downloadable videos found for this URL.');
+
+    const videos = data.contents[0]?.videos || [];
+    if (!videos.length) throw new Error('No video formats found.');
+
+    clear();
+
+    // Show title
+    const title = data.contents[0]?.title || 'Video';
+    document.getElementById('rTitle').textContent = title.slice(0, 100);
+
+    // Show download options — filter mp4 with audio, pick best ones
+    const filtered = videos
+      .filter(v => v.metadata?.has_audio !== false)
+      .slice(0, 6);
+
+    const list = document.getElementById('vList');
+    list.innerHTML = '';
+
+    (filtered.length ? filtered : videos.slice(0, 6)).forEach(v => {
+      const label = v.label || v.metadata?.quality_label || 'Download';
+      const size = v.metadata?.content_length_text || '';
+      const mime = v.metadata?.mime_type?.split(';')[0] || '';
+      const div = document.createElement('div');
+      div.className = 'vitem';
+      div.innerHTML = `
+        <div class="vinfo">
+          <b>${label}</b>
+          ${size ? size + ' · ' : ''}${mime}
+        </div>
+        <a class="dlbtn" href="${v.url}" target="_blank" rel="noopener">⬇ Save</a>
+      `;
+      list.appendChild(div);
+    });
+
+    document.getElementById('rbox').classList.add('show');
+
+  } catch(err) {
+    clear();
+    showErr(err.message || 'Something went wrong.');
+  } finally {
+    document.getElementById('fetchBtn').disabled = false;
+  }
+}
+
+function showStatus(m){document.getElementById('stxt').textContent=m;document.getElementById('sbox').classList.add('show');}
+function showErr(m){document.getElementById('etxt').textContent=m;document.getElementById('ebox').classList.add('show');}
+function clear(){['sbox','ebox','rbox'].forEach(id=>document.getElementById(id).classList.remove('show'));}
+</script>
+</body>
+</html>
